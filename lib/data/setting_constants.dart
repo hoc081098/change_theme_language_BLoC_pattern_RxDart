@@ -1,4 +1,4 @@
-import 'package:change_theme_language_bloc/models.dart';
+import 'package:change_theme_language_bloc/data/models/theme_locale_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc_pattern/flutter_bloc_pattern.dart';
 

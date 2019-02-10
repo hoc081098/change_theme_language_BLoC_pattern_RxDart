@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:change_theme_language_bloc/api.dart';
+import 'package:change_theme_language_bloc/data/api.dart';
+import 'package:change_theme_language_bloc/data/models/repo.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc_pattern/flutter_bloc_pattern.dart';
 import 'package:meta/meta.dart';
@@ -69,10 +70,16 @@ class HomeBloc implements BaseBloc {
   final Future<void> Function() fetchMyRepos;
 
   final ValueObservable<HomeList> state$;
+  final Stream<Object> error$;
 
   final void Function() _dispose;
 
-  HomeBloc._(this.fetchMyRepos, this.state$, this._dispose);
+  HomeBloc._(
+    this.fetchMyRepos,
+    this.state$,
+    this._dispose,
+    this.error$,
+  );
 
   factory HomeBloc(Api api) {
     final fetchMyReposController = PublishSubject<void>();
@@ -100,11 +107,15 @@ class HomeBloc implements BaseBloc {
       seedValue: const HomeList(repos: [], isLoading: true, error: null),
     );
 
+    var error$ =
+        homeListState$.map((s) => s.error).where((e) => e != 0).publish();
+
     final subscriptions = <StreamSubscription>[
       state$.listen(
         (data) => print('listen in bloc $data'),
         onError: (e) => print('listen in bloc $e'),
       ),
+      error$.connect(),
       state$.connect(),
     ];
 
@@ -123,6 +134,7 @@ class HomeBloc implements BaseBloc {
         await Future.wait(subscriptions.map((s) => s.cancel()));
         await fetchMyReposController.close();
       },
+      error$,
     );
   }
 

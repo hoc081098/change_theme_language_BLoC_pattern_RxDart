@@ -1,6 +1,6 @@
-import 'package:change_theme_language_bloc/local_data_source.dart';
-import 'package:change_theme_language_bloc/setting_constants.dart';
-import 'package:change_theme_language_bloc/models.dart';
+import 'package:change_theme_language_bloc/data/local_data_source.dart';
+import 'package:change_theme_language_bloc/data/models/theme_locale_model.dart';
+import 'package:change_theme_language_bloc/data/setting_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalDataSourceImpl implements LocalDataSource {

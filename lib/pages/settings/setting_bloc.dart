@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:change_theme_language_bloc/local_data_source.dart';
-import 'package:change_theme_language_bloc/models.dart';
+import 'package:change_theme_language_bloc/data/local_data_source.dart';
+import 'package:change_theme_language_bloc/data/models/theme_locale_model.dart';
 import 'package:distinct_value_connectable_observable/distinct_value_connectable_observable.dart';
 import 'package:flutter_bloc_pattern/flutter_bloc_pattern.dart';
 import 'package:rxdart/rxdart.dart';

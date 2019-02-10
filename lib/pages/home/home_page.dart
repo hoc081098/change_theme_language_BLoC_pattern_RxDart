@@ -1,12 +1,41 @@
+import 'dart:async';
+
 import 'package:change_theme_language_bloc/generated/i18n.dart';
-import 'package:change_theme_language_bloc/home_bloc.dart';
-import 'package:change_theme_language_bloc/settings_page.dart';
+import 'package:change_theme_language_bloc/pages/home/home_bloc.dart';
+import 'package:change_theme_language_bloc/pages/settings/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc_pattern/flutter_bloc_pattern.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({Key key}) : super(key: key);
+
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  StreamSubscription _subscription;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_subscription == null) {
+      _subscription = BlocProvider.of<HomeBloc>(context).error$.listen((e) {
+        _scaffoldKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+          ),
+        );
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +43,7 @@ class HomePage extends StatelessWidget {
     var homeBloc = BlocProvider.of<HomeBloc>(context);
 
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(s.home_page_title),
         actions: <Widget>[
@@ -23,7 +53,7 @@ class HomePage extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => SettingsPage()),
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
               );
             },
           ),

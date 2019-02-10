@@ -1,16 +1,17 @@
-import 'package:change_theme_language_bloc/api.dart';
+import 'package:change_theme_language_bloc/data/api.dart';
+import 'package:change_theme_language_bloc/data/local_data_source_impl.dart';
+import 'package:change_theme_language_bloc/data/setting_constants.dart';
 import 'package:change_theme_language_bloc/generated/i18n.dart';
-import 'package:change_theme_language_bloc/home_bloc.dart';
-import 'package:change_theme_language_bloc/home_page.dart';
-import 'package:change_theme_language_bloc/local_data_source_impl.dart';
-import 'package:change_theme_language_bloc/setting_bloc.dart';
-import 'package:change_theme_language_bloc/setting_constants.dart';
+import 'package:change_theme_language_bloc/pages/home/home_bloc.dart';
+import 'package:change_theme_language_bloc/pages/home/home_page.dart';
+import 'package:change_theme_language_bloc/pages/settings/setting_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_bloc_pattern/flutter_bloc_pattern.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
-  final api = Api();
+  final api = Api(http.Client());
   final settingConstants = SettingConstants();
   final localDataSource = LocalDataSourceImpl(settingConstants);
   final settingBloc = SettingBloc(localDataSource);
