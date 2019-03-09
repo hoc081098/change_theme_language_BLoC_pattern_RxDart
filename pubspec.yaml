@@ -29,3 +29,4 @@ flutter:
   assets:
     - assets/images/en.png
     - assets/images/vi.png
+    - assets/json/repos.json

@@ -20,8 +20,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     if (_subscription == null) {
       _subscription = BlocProvider.of<HomeBloc>(context).error$.listen((e) {
+        print('[HOMEPAGE] error=$e');
         _scaffoldKey.currentState?.showSnackBar(
           SnackBar(
             content: Text(e.toString()),
@@ -39,8 +41,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var s = S.of(context);
-    var homeBloc = BlocProvider.of<HomeBloc>(context);
+    final s = S.of(context);
+    final homeBloc = BlocProvider.of<HomeBloc>(context);
 
     return Scaffold(
       key: _scaffoldKey,
@@ -66,65 +68,19 @@ class _HomePageState extends State<HomePage> {
             stream: homeBloc.state$,
             initialData: homeBloc.state$.value,
             builder: (context, snapshot) {
-              print(snapshot);
-              var data = snapshot.data;
-
-              var children = <Widget>[const MyReposList()];
-              if (data.isLoading) {
-                children.add(const LoadingIndicator());
+              final children = <Widget>[const MyReposList()];
+              if (snapshot.data.isLoading) {
+                children.add(
+                  Align(
+                    alignment: AlignmentDirectional.center,
+                    child: CircularProgressIndicator(),
+                  ),
+                );
               }
-
               return Stack(children: children);
             },
           ),
         ),
-      ),
-    );
-  }
-}
-
-class LoadingIndicator extends StatefulWidget {
-  const LoadingIndicator({Key key}) : super(key: key);
-
-  @override
-  _LoadingIndicatorState createState() => _LoadingIndicatorState();
-}
-
-class _LoadingIndicatorState extends State<LoadingIndicator>
-    with SingleTickerProviderStateMixin {
-  AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: Tween(
-        begin: 0.0,
-        end: 1.0,
-      ).animate(
-        CurvedAnimation(
-          parent: _controller,
-          curve: Curves.easeOut,
-        ),
-      ),
-      child: Center(
-        child: CircularProgressIndicator(),
       ),
     );
   }
@@ -135,7 +91,7 @@ class MyReposList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var homeBloc = BlocProvider.of<HomeBloc>(context);
+    final homeBloc = BlocProvider.of<HomeBloc>(context);
 
     return Positioned.fill(
       child: StreamBuilder<HomeList>(
@@ -146,7 +102,7 @@ class MyReposList extends StatelessWidget {
             child: ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
               itemBuilder: (BuildContext context, int index) {
-                var repo = snapshot.data.repos[index];
+                final repo = snapshot.data.repos[index];
                 return ListTile(
                   onTap: () async {
                     if (await canLaunch(repo.url)) {

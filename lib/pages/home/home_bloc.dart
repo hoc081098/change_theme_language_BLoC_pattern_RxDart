@@ -8,6 +8,8 @@ import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:distinct_value_connectable_observable/distinct_value_connectable_observable.dart';
 
+//ignore_for_file: close_sinks
+
 class HomeList {
   final List<Repo> repos;
   final bool isLoading;
@@ -19,9 +21,12 @@ class HomeList {
     @required this.error,
   });
 
+  factory HomeList.initialState() =>
+      const HomeList(repos: [], isLoading: true, error: null);
+
   @override
   String toString() =>
-      'HomeList{repos: $repos, isLoading: $isLoading, error: $error}';
+      'HomeList{repos.length: ${repos.length}, isLoading: $isLoading, error: $error}';
 
   @override
   bool operator ==(Object other) =>
@@ -83,13 +88,13 @@ class HomeBloc implements BaseBloc {
 
   factory HomeBloc(Api api) {
     final fetchMyReposController = PublishSubject<void>();
+    final errorController = PublishSubject<Object>();
 
     Completer<void> completer;
 
-    var homeListState$ = fetchMyReposController
-        .doOnData((_) => print('fetch...'))
-        .exhaustMap((_) {
+    final homeListState$ = fetchMyReposController.exhaustMap((_) {
       return Observable.fromFuture(api.myRepos())
+          .doOnError((e, s) => errorController.add(e))
           .doOnEach((_) {
             _completeCompleter(completer);
             completer = null;
@@ -97,25 +102,18 @@ class HomeBloc implements BaseBloc {
           .map<PartialChange>((repos) => Data(repos))
           .startWith(const Loading())
           .onErrorReturnWith((e) => Error(e));
-    }).scan(
-      (HomeList state, PartialChange change, _) => reducer(state, change),
-      const HomeList(repos: [], isLoading: true, error: null),
-    );
+    }).scan(reducer, HomeList.initialState());
 
-    var state$ = DistinctValueConnectableObservable(
+    final state$ = DistinctValueConnectableObservable(
       homeListState$,
-      seedValue: const HomeList(repos: [], isLoading: true, error: null),
+      seedValue: HomeList.initialState(),
     );
-
-    var error$ =
-        homeListState$.map((s) => s.error).where((e) => e != 0).publish();
 
     final subscriptions = <StreamSubscription>[
       state$.listen(
-        (data) => print('listen in bloc $data'),
-        onError: (e) => print('listen in bloc $e'),
+        (data) => print('[HOMEBLOC] state=$data'),
+        onError: (e) => print('[HOMEBLOC] error=$e'),
       ),
-      error$.connect(),
       state$.connect(),
     ];
 
@@ -132,18 +130,19 @@ class HomeBloc implements BaseBloc {
       state$,
       () async {
         await Future.wait(subscriptions.map((s) => s.cancel()));
-        await fetchMyReposController.close();
+        await Future.wait([
+          fetchMyReposController,
+          errorController,
+        ].map((c) => c.close()));
       },
-      error$,
+      errorController.stream,
     );
   }
 
   @override
   void dispose() => _dispose();
 
-  static HomeList reducer(HomeList state, PartialChange change) {
-    print('state=$state, change=$change');
-
+  static HomeList reducer(HomeList state, PartialChange change, int _) {
     if (change is Loading) {
       return HomeList(
         repos: state.repos,
