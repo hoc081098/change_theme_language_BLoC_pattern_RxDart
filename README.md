@@ -1,7 +1,7 @@
 # change_theme_language_bloc
 
 ## RxDart + BLoC pattern
-Dynamically changing your theme without hassle 
+Dynamically changing your theme and your language without hassle 
 
 ## Getting Started
 
