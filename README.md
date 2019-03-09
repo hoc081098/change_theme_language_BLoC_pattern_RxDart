@@ -1,6 +1,7 @@
 # change_theme_language_bloc
 
-A new Flutter project.
+## RxDart + BLoC pattern
+Dynamically changing your theme and your language without hassle 
 
 ## Getting Started
 
