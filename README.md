@@ -17,6 +17,8 @@ For help getting started with Flutter, view our
 samples, guidance on mobile development, and a full API reference.
 
 ## Screenshots
+![](screenshots/demo.gif)
+
 |  |  |   |
 | :---:                              | :---:                             | :---:                              |
 | ![](screenshots/Screenshot_(1).png)  | ![](screenshots/Screenshot_(2).png) | ![](screenshots/Screenshot_(3).png)  |
