@@ -1,82 +1,32 @@
 import 'dart:async';
 
+import 'package:built_collection/built_collection.dart';
 import 'package:change_theme_language_bloc/data/api.dart';
-import 'package:change_theme_language_bloc/data/models/repo.dart';
-import 'package:collection/collection.dart';
+import 'package:change_theme_language_bloc/pages/home/home_state.dart';
 import 'package:flutter_bloc_pattern/flutter_bloc_pattern.dart';
-import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:distinct_value_connectable_observable/distinct_value_connectable_observable.dart';
 
 //ignore_for_file: close_sinks
 
-class HomeList {
-  final List<Repo> repos;
-  final bool isLoading;
-  final Object error;
-
-  const HomeList({
-    @required this.repos,
-    @required this.isLoading,
-    @required this.error,
-  });
-
-  factory HomeList.initialState() =>
-      const HomeList(repos: [], isLoading: true, error: null);
-
-  @override
-  String toString() =>
-      'HomeList{repos.length: ${repos.length}, isLoading: $isLoading, error: $error}';
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is HomeList &&
-          runtimeType == other.runtimeType &&
-          const ListEquality<Repo>().equals(repos, other.repos) &&
-          isLoading == other.isLoading &&
-          error == other.error;
-
-  @override
-  int get hashCode =>
-      const ListEquality<Repo>().hash(repos) ^
-      isLoading.hashCode ^
-      error.hashCode;
-}
-
-abstract class PartialChange {}
-
-class Data implements PartialChange {
-  final List<Repo> repos;
-
-  Data(this.repos);
-
-  @override
-  String toString() => 'Data{repos: $repos}';
-}
-
-class Loading implements PartialChange {
-  const Loading();
-}
-
-class Error implements PartialChange {
-  final Object error;
-
-  Error(this.error);
-
-  @override
-  String toString() => 'Error{error: $error}';
-}
-
 ///
-///
+/// Business logic component (BLoC) for home page
 ///
 class HomeBloc implements BaseBloc {
+  ///
+  /// Input [Function]s
+  ///
   final Future<void> Function() fetchMyRepos;
 
+  ///
+  /// Output [Stream]s
+  ///
   final ValueObservable<HomeList> state$;
   final Stream<Object> error$;
 
+  ///
+  /// Clean up resource
+  ///
   final void Function() _dispose;
 
   HomeBloc._(
@@ -86,35 +36,52 @@ class HomeBloc implements BaseBloc {
     this.error$,
   );
 
-  factory HomeBloc(Api api) {
+  factory HomeBloc(final Api api) {
+    ///
+    /// Stream controllers
+    ///
     final fetchMyReposController = PublishSubject<void>();
     final errorController = PublishSubject<Object>();
 
+    ///
+    /// A [Completer] that complete when loaded done
+    ///
     Completer<void> completer;
 
+    ///
+    /// Transform fetch action stream to home list state stream
+    ///
     final homeListState$ = fetchMyReposController.exhaustMap((_) {
       return Observable.fromFuture(api.myRepos())
-          .doOnError((e, s) => errorController.add(e))
+          .doOnError((e, s) {
+            // add error to [errorController] when error occurred
+            errorController.add(e);
+          })
           .doOnEach((_) {
+            /// Complete [completer]
             _completeCompleter(completer);
             completer = null;
           })
-          .map<PartialChange>((repos) => Data(repos))
-          .startWith(const Loading())
-          .onErrorReturnWith((e) => Error(e));
+          .map<PartialChange>((repos) => DataPartialChange(repos))
+          .startWith(const LoadingPartialChange())
+          .onErrorReturnWith((e) => ErrorPartialChange(e));
     }).scan(reducer, HomeList.initialState());
 
-    final state$ = DistinctValueConnectableObservable(
+    ///
+    /// Final Home state streams
+    ///
+    final homeListStateValueConnectableObservable$ =
+        DistinctValueConnectableObservable.seeded(
       homeListState$,
       seedValue: HomeList.initialState(),
     );
 
     final subscriptions = <StreamSubscription>[
-      state$.listen(
+      homeListStateValueConnectableObservable$.listen(
         (data) => print('[HOMEBLOC] state=$data'),
         onError: (e) => print('[HOMEBLOC] error=$e'),
       ),
-      state$.connect(),
+      homeListStateValueConnectableObservable$.connect(),
     ];
 
     return HomeBloc._(
@@ -127,9 +94,16 @@ class HomeBloc implements BaseBloc {
 
         return completer.future;
       },
-      state$,
+      homeListStateValueConnectableObservable$,
       () async {
+        ///
+        /// Cancel stream subscriptions
+        ///
         await Future.wait(subscriptions.map((s) => s.cancel()));
+
+        ///
+        /// And then, close stream controllers
+        ///
         await Future.wait([
           fetchMyReposController,
           errorController,
@@ -142,33 +116,34 @@ class HomeBloc implements BaseBloc {
   @override
   void dispose() => _dispose();
 
+  ///
+  /// Pure function, produce new state from previous state [state] and a change [change]
+  ///
   static HomeList reducer(HomeList state, PartialChange change, int _) {
-    if (change is Loading) {
-      return HomeList(
-        repos: state.repos,
-        isLoading: true,
-        error: null,
-      );
+    if (change is LoadingPartialChange) {
+      return state.rebuild((b) => b
+        ..isLoading = true
+        ..error = null);
     }
-    if (change is Error) {
-      return HomeList(
-        repos: state.repos,
-        isLoading: false,
-        error: change.error,
-      );
+    if (change is ErrorPartialChange) {
+      return state.rebuild((b) => b
+        ..isLoading = false
+        ..error = change.error);
     }
-    if (change is Data) {
-      return HomeList(
-        repos: change.repos,
-        isLoading: false,
-        error: null,
-      );
+    if (change is DataPartialChange) {
+      return state.rebuild((b) => b
+        ..repos = ListBuilder(change.repos)
+        ..isLoading = false
+        ..error = null);
     }
     return state;
   }
 }
 
-_completeCompleter(Completer completer) {
+///
+/// Complete [completer] if not yet
+///
+void _completeCompleter(Completer completer) {
   if (completer == null || completer.isCompleted) return;
   try {
     completer.complete();

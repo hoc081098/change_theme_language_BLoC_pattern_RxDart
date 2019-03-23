@@ -1,7 +1,11 @@
-import 'package:change_theme_language_bloc/data/models/theme_locale_model.dart';
+import 'package:change_theme_language_bloc/data/models/locale_model.dart';
+import 'package:change_theme_language_bloc/data/models/theme_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc_pattern/flutter_bloc_pattern.dart';
 
+///
+/// Class holders setting constants like themes, locales
+///
 class SettingConstants implements BaseBloc {
   final List<LocaleModel> locales;
   final List<ThemeModel> themes;
@@ -34,14 +38,23 @@ class SettingConstants implements BaseBloc {
     return SettingConstants._(locales, themes);
   }
 
-  ThemeModel findThemeByName(String name) {
-    return themes.firstWhere((e) => e.name == name);
-  }
+  ///
+  /// Returns the first theme [ThemeModel] whose name is equal to [name]
+  /// Throw [StateError] if not found
+  ///
+  ThemeModel findThemeByName(String name) =>
+      themes.firstWhere((e) => e.name == name);
 
-  LocaleModel findLocaleByTitle(String title) {
-    return locales.firstWhere((e) => e.title == title);
-  }
+  ///
+  /// Returns the first locale [LocaleModel] whose title is equal to [title]
+  /// Throw [StateError] if not found
+  ///
+  LocaleModel findLocaleByTitle(String title) =>
+      locales.firstWhere((e) => e.title == title);
 
+  ///
+  /// Do nothing :v
+  /// 
   @override
   void dispose() => null;
 }

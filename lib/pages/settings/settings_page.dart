@@ -1,7 +1,9 @@
-import 'package:change_theme_language_bloc/data/models/theme_locale_model.dart';
+import 'package:change_theme_language_bloc/data/models/locale_model.dart';
+import 'package:change_theme_language_bloc/data/models/theme_model.dart';
 import 'package:change_theme_language_bloc/data/setting_constants.dart';
 import 'package:change_theme_language_bloc/generated/i18n.dart';
 import 'package:change_theme_language_bloc/pages/settings/setting_bloc.dart';
+import 'package:change_theme_language_bloc/pages/settings/setting_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc_pattern/flutter_bloc_pattern.dart';
 
@@ -10,7 +12,7 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var s = S.of(context);
+    final s = S.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -37,11 +39,11 @@ class ChangeThemeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var settingBloc = BlocProvider.of<SettingBloc>(context);
-    var settingConstants = BlocProvider.of<SettingConstants>(context);
-    var s = S.of(context);
+    final settingBloc = BlocProvider.of<SettingBloc>(context);
+    final settingConstants = BlocProvider.of<SettingConstants>(context);
+    final s = S.of(context);
 
-    return StreamBuilder<SettingModel>(
+    return StreamBuilder<SettingsState>(
       stream: settingBloc.setting$,
       initialData: settingBloc.setting$.value,
       builder: (context, snapshot) {
@@ -118,11 +120,11 @@ class ChangeLanguageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var settingBloc = BlocProvider.of<SettingBloc>(context);
-    var settingConstants = BlocProvider.of<SettingConstants>(context);
-    var s = S.of(context);
+    final settingBloc = BlocProvider.of<SettingBloc>(context);
+    final settingConstants = BlocProvider.of<SettingConstants>(context);
+    final s = S.of(context);
 
-    return StreamBuilder<SettingModel>(
+    return StreamBuilder<SettingsState>(
       stream: settingBloc.setting$,
       initialData: settingBloc.setting$.value,
       builder: (context, snapshot) {

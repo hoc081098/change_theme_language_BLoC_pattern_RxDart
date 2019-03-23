@@ -1,5 +1,5 @@
 name: change_theme_language_bloc
-description: A new Flutter project.
+description: Chnage theme and language runtime flutter sample
 version: 1.0.0+1
 
 environment:
@@ -11,9 +11,10 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
+  built_value: ^6.3.2 #flutter packages pub run build_runner build
   cupertino_icons: ^0.1.2
   flutter_bloc_pattern: ^0.0.1+1
-  distinct_value_connectable_observable: ^1.0.0+1
+  distinct_value_connectable_observable: ^1.0.0+3
   shared_preferences: ^0.4.3
   http: ^0.12.0+1
   collection: ^1.14.11
@@ -23,6 +24,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   mockito:
+  build_runner: ^1.2.8
+  built_value_generator: ^6.3.2
 
 flutter:
   uses-material-design: true

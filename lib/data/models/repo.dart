@@ -1,5 +1,8 @@
 import 'package:meta/meta.dart';
 
+///
+/// Github repo model
+///
 class Repo {
   final String name;
   final String description;

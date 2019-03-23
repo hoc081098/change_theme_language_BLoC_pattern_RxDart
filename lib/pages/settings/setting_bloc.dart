@@ -1,43 +1,32 @@
 import 'dart:async';
 
 import 'package:change_theme_language_bloc/data/local_data_source.dart';
-import 'package:change_theme_language_bloc/data/models/theme_locale_model.dart';
+import 'package:change_theme_language_bloc/data/models/locale_model.dart';
+import 'package:change_theme_language_bloc/data/models/theme_model.dart';
+import 'package:change_theme_language_bloc/pages/settings/setting_state.dart';
 import 'package:distinct_value_connectable_observable/distinct_value_connectable_observable.dart';
 import 'package:flutter_bloc_pattern/flutter_bloc_pattern.dart';
 import 'package:rxdart/rxdart.dart';
 
 //ignore_for_file: close_sinks
 
-class SettingModel {
-  final ThemeModel themeModel;
-  final LocaleModel localeModel;
-
-  const SettingModel(this.themeModel, this.localeModel);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is SettingModel &&
-          runtimeType == other.runtimeType &&
-          themeModel == other.themeModel &&
-          localeModel == other.localeModel;
-
-  @override
-  int get hashCode => themeModel.hashCode ^ localeModel.hashCode;
-
-  @override
-  String toString() =>
-      'SettingModel{themeModel: $themeModel, localeModel: $localeModel}';
-}
-
+///
+/// Business logic component BLoC for settings
+///
 class SettingBloc implements BaseBloc {
+  ///
+  /// Input [Function]s
   ///
   final void Function(ThemeModel) changeTheme;
   final void Function(LocaleModel) changeLocale;
 
   ///
-  final ValueObservable<SettingModel> setting$;
+  /// Output [Stream]s
+  ///
+  final ValueObservable<SettingsState> setting$;
 
+  ///
+  /// Clean up resource
   ///
   final void Function() _dispose;
 
@@ -48,48 +37,69 @@ class SettingBloc implements BaseBloc {
     this._dispose,
   );
 
-  factory SettingBloc(LocalDataSource local) {
-    var themeController = PublishSubject<ThemeModel>();
-    var localeController = PublishSubject<LocaleModel>();
+  factory SettingBloc(final LocalDataSource local) {
+    ///
+    /// Stream controllers
+    ///
+    final changeThemeController = PublishSubject<ThemeModel>();
+    final changeLocaleController = PublishSubject<LocaleModel>();
 
-    var theme$ = themeController
+    ///
+    /// Transform stream of change theme actions to stream of [ThemeModel]s
+    ///
+    final theme$ = changeThemeController
         .distinct()
         .switchMap((theme) => Observable.fromFuture(local.saveTheme(theme)))
         .where((success) => success)
-        .startWith(null)
+        .startWith(null) // get theme initial
         .switchMap((_) => Observable.fromFuture(local.getTheme()))
         .doOnData(print);
 
-    var locale$ = localeController
+    ///
+    /// Transform stream of change locale actions to stream of [LocaleModel]s
+    ///
+    final locale$ = changeLocaleController
         .distinct()
         .switchMap((locale) => Observable.fromFuture(local.saveLocale(locale)))
         .where((success) => success)
-        .startWith(null)
+        .startWith(null) // get locale initial
         .switchMap((_) => Observable.fromFuture(local.getLocale()))
         .doOnData(print);
 
-    final setting$ = DistinctValueConnectableObservable(
+    ///
+    /// Final setting state stream
+    ///
+    final settingsState$ = DistinctValueConnectableObservable(
       Observable.combineLatest2(
         theme$,
         locale$,
-        (theme, locale) => SettingModel(theme, locale),
+        (theme, locale) => SettingsState((b) => b
+          ..themeModel = theme
+          ..localeModel = locale),
       ),
     );
 
     final subscriptions = <StreamSubscription>[
-      setting$.listen(print),
-      setting$.connect(),
+      settingsState$.listen(print),
+      settingsState$.connect(),
     ];
 
     return SettingBloc._(
-      themeController.add,
-      localeController.add,
-      setting$,
+      changeThemeController.add,
+      changeLocaleController.add,
+      settingsState$,
       () async {
+        ///
+        /// Cancel stream subscriptions
+        ///
         await Future.wait(subscriptions.map((s) => s.cancel()));
+
+        ///
+        /// And then, close stream controllers
+        ///
         await Future.wait([
-          themeController,
-          localeController,
+          changeThemeController,
+          changeLocaleController,
         ].map((c) => c.close()));
       },
     );
