@@ -10,7 +10,7 @@ Star :star: if it is helpful :thumbsup:
 
 ## Trying
 
-Download ![APK](build/app/outputs/apk/release)
+Download ![APK](build/app/outputs/apk/release/app-release.apk)
 
 ## Demo :camera: :art:
 
