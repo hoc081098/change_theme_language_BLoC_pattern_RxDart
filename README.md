@@ -8,8 +8,11 @@ Dynamically changing your theme and your language without hassle
 Using `BLoC` :clap: pattern with `rxdart` :muscle: library <br/>
 Star :star: if it is helpful :thumbsup:
 
-## Demo :camera: :art:
+## Trying
 
+Download ![APK](build/app/outputs/apk/release)
+
+## Demo :camera: :art:
 
 <p align="center"> 
 <img src="screenshots/demo.gif" width="240px">
