@@ -1,7 +1,7 @@
 # change_theme_language_bloc :iphone:
 ## FUNCTIONAL REACTIVE PROGRAMMING
 ## RxDart + BLoC pattern + Built value
-## BLoC pattern: receive action stream and transform them to state stream (map, filter, switchMap, concatMap, combineLatest, ...)
+## BLoC pattern: receive action stream and transform them to state stream using RxDart operator (such as map, filter, switchMap, concatMap, combineLatest, exhaustMap, flatMap, withLatestFrom, distinct...)
 
 Dynamically changing your theme and your language without hassle 
 
